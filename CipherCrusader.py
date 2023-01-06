@@ -13,15 +13,14 @@
 # You should have received a copy of the MIT License
 # along with My Project.  If not, see <https://opensource.org/licenses/MIT>.
 
-
-import sqlite3
 import re
 import os
 from os import urandom
-import pyperclip as clipboard
 import string
 import random
 import hashlib
+import sqlite3
+import pyperclip as clipboard
 from Crypto.Cipher import AES
 import maskpass
 
