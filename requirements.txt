@@ -1,5 +1,5 @@
 # requirements.txt for the password manager 'CipherCrusader.py'
-sqlite3
+pysqlite3
 re
 os
 pyperclip
