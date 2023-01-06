@@ -1,0 +1,10 @@
+# requirements.txt for the password manager 'CipherCrusader.py'
+sqlite3
+re
+os
+pyperclip
+string
+random
+hashlib
+Crypto.Cipher
+maskpass
