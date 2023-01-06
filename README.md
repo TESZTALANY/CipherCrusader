@@ -1,7 +1,7 @@
 # CipherCrusader
 CipherCrusader is an open source command line password manager made in python.
 
-The script is made using Python 3.10 and will not work with previous Python versions.
+The script is made using Python 3.10 and will not work with previous Python versions. You need Python to be installed to run the program. You can find instructions on how to do that on https://www.python.org/.
 
 List of commands:
   - unlock: Used for decrypting the database using the password.
@@ -15,3 +15,7 @@ List of commands:
   - help: Lists all available commands and their functions.
 
 After the first run, a file named 'database.db' will be placed in the directory of the program. When encrypted, the name of the file will be changed to 'database.db.enc'. The program uses AES encryption to provide security to the database when it is not in use.
+
+If you find any issues with the program, feel free to submit it, or try to correct it and submit a pull request.
+
+Thanks and have a nice day ☺️
