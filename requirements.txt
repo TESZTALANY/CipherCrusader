@@ -1,10 +1,5 @@
 # requirements.txt for the password manager 'CipherCrusader.py'
 pysqlite3
-re
-os
 pyperclip
-string
-random
-hashlib
 Crypto.Cipher
 maskpass
