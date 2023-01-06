@@ -5,13 +5,13 @@
 # 'CipherCrusader' is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 #
-# My Project is distributed in the hope that it will be useful,
+# 'CipherCrusader' is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # MIT License for more details.
 #
 # You should have received a copy of the MIT License
-# along with My Project.  If not, see <https://opensource.org/licenses/MIT>.
+# along with 'CipherCrusader'.  If not, see <https://opensource.org/licenses/MIT>.
 
 import re
 import os
