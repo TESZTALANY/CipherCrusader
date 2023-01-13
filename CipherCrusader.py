@@ -342,6 +342,7 @@ while True:
 
             if (locked == False):
                 encrypt_file(maskpass.askpass("Enter password to encrypt: "))
+                db.close()
                 os.remove("database.db")
 
             break
