@@ -78,29 +78,25 @@ def decrypt_file(password):
 
 
 # Check if the database file exists
-if not os.path.exists('database.db.enc'):
-    # If not, create the file and the 'websites' table
-    db = sqlite3.connect('database.db')
-    cursor = db.cursor()
+if os.path.exists('database.db.enc'):
+    # If the dile exists, decrypt it
+    decrypt_file(maskpass.askpass("Enter the password for the database: "))
+
+# Open a connection to the database or create it
+db = sqlite3.connect('database.db')
+# Check if the 'websites' table exists
+cursor = db.cursor()
+cursor.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='websites';")
+result = cursor.fetchone()
+
+if not result:
+    # If the 'websites' table does not exist, create it
     cursor.execute(
         "CREATE TABLE websites (website text, username text, password text)")
 
-else:
-    decrypt_file(maskpass.askpass("Enter the password for the database: "))
-    # If the file exists, open a connection to the database
-    db = sqlite3.connect('database.db')
-    # Check if the 'websites' table exists
-    cursor = db.cursor()
-    cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='websites';")
-    result = cursor.fetchone()
-
-    if not result:
-        # If the 'websites' table does not exist, create it
-        cursor.execute(
-            "CREATE TABLE websites (website text, username text, password text)")
-
 locked = False
+
 
 # Functions for the commands
 
@@ -356,7 +352,8 @@ while True:
             print("'generate' - generate a strong password and copies it to clipboard")
             print("'add' - add an entry to the database")
             print("'remove' - remove an entry from the database")
-            print("'get' - print the credentials to a website and copy the password to clipboard")
+            print(
+                "'get' - print the credentials to a website and copy the password to clipboard")
             print("'list' - list all the websites in the database")
             print("'exit' - exits the program")
             print("'help' - displays this message")
@@ -364,7 +361,8 @@ while True:
         # Default answer to not valid commands
         case _:
 
-            print("This is not a valid command, use the 'help' command for more information.")
+            print(
+                "This is not a valid command, use the 'help' command for more information.")
 
     if (locked == False and os.path.exists("database.db.enc")):
         db.close()
