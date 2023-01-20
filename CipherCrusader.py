@@ -54,33 +54,37 @@ def encrypt_file(password):
             out_file.write(cipher.encrypt(chunk))
 
 
-def decrypt_file(password):
-
-    with open("database.db.enc", "rb") as in_file, open("database.db", "wb") as out_file:
+def decrypt_file():
+    decryption_successful = False
+    while not decryption_successful:
+        password = maskpass.askpass("Enter the password for the database: ")
         bs = AES.block_size
         key_length = 32
-        salt = in_file.read(bs)
-        key, iv = derive_key_and_iv(password, salt, key_length, bs)
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        next_chunk = ''
-        finished = False
-
-        while not finished:
-            chunk, next_chunk = next_chunk, cipher.decrypt(
-                in_file.read(1024 * bs))
-
-            if len(next_chunk) == 0:
-                padding_length = chunk[-1]
-                chunk = chunk[:-padding_length]
-                finished = True
-
-            out_file.write(bytes(x for x in chunk))
+        with open("database.db.enc", "rb") as in_file:
+            salt = in_file.read(bs)
+            key, iv = derive_key_and_iv(password, salt, key_length, bs)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            data = in_file.read()
+            decrypted_data = cipher.decrypt(data)
+            in_file.close()
+            try:
+                with open("database.db", "wb") as out_file:
+                    out_file.write(decrypted_data)
+                with open("database.db", "rb") as f:
+                    header = f.read(16)
+                if header == b'SQLite format 3\x00':
+                    decryption_successful = True
+                else:
+                    os.remove("database.db")
+                    print("Incorrect password, please try again.")
+            except ValueError:
+                print("Incorrect password, please try again.")
 
 
 # Check if the database file exists
 if os.path.exists('database.db.enc'):
-    # If the dile exists, decrypt it
-    decrypt_file(maskpass.askpass("Enter the password for the database: "))
+    # If the file exists, decrypt it
+    decrypt_file()
 
 # Open a connection to the database or create it
 db = sqlite3.connect('database.db')
@@ -234,7 +238,7 @@ while True:
                 print("The database is not encrypted.")
 
             else:
-                decrypt_file(maskpass.askpass("Enter password to decrypt: "))
+                decrypt_file()
                 locked = False
 
         # Lock command to encrypt database
