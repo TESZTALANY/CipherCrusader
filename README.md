@@ -1,21 +1,33 @@
 # CipherCrusader
-CipherCrusader is an open source command line password manager made in python.
+CipherCrusader is an open-source command-line password manager created in Python 3.10. The program requires Python 3.10 or later to be installed on the user's device. Instructions on how to install Python can be found on the official Python website (https://www.python.org/).
 
-The script is made using Python 3.10 and will not work with previous Python versions. You need Python to be installed to run the program. You can find instructions on how to do that on https://www.python.org/.
+CipherCrusader utilizes AES encryption to secure the user's login information stored in an SQLite database. The database is encrypted by default and can only be accessed by providing the correct password. The user can also manually lock and unlock the database.
 
-List of commands:
-  - unlock: Used for decrypting the database using the password.
-  - lock: Used for encrypting the database using the password.
-  - generate: Used for creating a strong password using random characters after asking for a length.
-  - add: Adds an entry to the database, containing a website, username and password.
-  - remove: Removes an entry from the database.
-  - get: Lists the credentials for a website the user provides.
-  - list: Lists all the websites the user has a credential stored in the database.
-  - exit: Encrypts the database and exits the program.
-  - help: Lists all available commands and their functions.
+CipherCrusader offers a variety of commands for the user to manage their login information. These include:
+- `unlock`: Decrypts the database using the user's password.
+- `lock`: Encrypts the database using the user's password.
+- `generate`: Generates a strong, unique password of a user-specified length.
+- `add`: Adds an entry to the database, including a website, username, and password.
+- `remove`: Removes an entry from the database.
+- `get`: Retrieves the credentials for a specific website.
+- `list`: Lists all websites for which the user has stored credentials in the database.
+- `exit`: Encrypts the database and exits the program.
+- `help`: Lists all available commands and their functions.
 
-After the first run, a file named 'database.db' will be placed in the directory of the program. When encrypted, the name of the file will be changed to 'database.db.enc'. The program uses AES encryption to provide security to the database when it is not in use.
+The first time the program is run, a file named 'database.db' will be created in the program's directory. When encrypted, the file name will change to 'database.db.enc'.
 
-If you find any issues with the program, feel free to submit it, or try to correct it and submit a pull request.
+If you encounter any issues or bugs with the program, please feel free to submit an issue or submit a pull request with your suggested changes.
 
-Thanks and have a nice day ☺️
+Thank you for using CipherCrusader and have a great day! ☺️
+
+
+
+## Installation:
+
+1. Make sure you have Python 3.10 or later installed on your device. If you don't have Python installed, you can download it from the official Python website (https://www.python.org/).
+
+2. Download the source code for CipherCrusader from the repository.
+
+3. Install the dependencies listed in the requirements.txt file by running the following command: <br> `pip install -r requirements.txt`
+
+4. Run the script using the command: <br> `python CipherCrusader.py`
