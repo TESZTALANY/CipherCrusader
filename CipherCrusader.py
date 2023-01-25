@@ -19,7 +19,7 @@ import re
 import os
 from os import urandom
 import string
-import random
+import secrets
 import hashlib
 import pyperclip as clipboard
 from Crypto.Cipher import AES
@@ -59,7 +59,7 @@ class password_database:
         decryption_successful = False
         while not decryption_successful:
             password = maskpass.askpass(
-                "Enter the password for the database: ")
+                "Password: ")
             bs = AES.block_size
             key_length = 32
             with open(self.database_name + ".db.enc", "rb") as in_file:
@@ -200,15 +200,15 @@ class password_database:
 
         password = ""
         for i in range(length):
-            char_type = random.uniform(0, 1)
+            char_type = secrets.SystemRandom().uniform(0, 1)
             if char_type <= 0.2:
-                password += random.choice(lower_case)
+                password += secrets.choice(lower_case)
             elif char_type <= 0.4:
-                password += random.choice(upper_case)
+                password += secrets.choice(upper_case)
             elif char_type <= 0.7:
-                password += random.choice(numbers)
+                password += secrets.choice(numbers)
             else:
-                password += random.choice(symbols)
+                password += secrets.choice(symbols)
 
         # Escape any remaining special characters
         password = password.replace("'", "''").replace("\\", "\\\\")
@@ -226,15 +226,14 @@ if __name__ == "__main__":
 
     # Create the database object
     password_database = password_database(
-        input("Enter the name of the database: "))
+        input("Name of database: "))
     db = sqlite3.connect(password_database.database_name + '.db')
 
     # Console interface
     while True:
 
         # Display a prompt for the user
-        command = input("\nEnter a command: ")
-        print("\n")
+        command = input("> ")
 
         match command:
 
@@ -256,19 +255,19 @@ if __name__ == "__main__":
 
                 else:
                     password_database.encrypt_file(
-                        maskpass.askpass("Enter password to encrypt: "))
+                        maskpass.askpass("Password: "))
                     password_database.locked = True
 
             # Generate command to generate a strong password and copy it to clipboard
             case "generate":
 
                 length = int(
-                    input("Enter password length (must be an integer): "))
+                    input("Password length (int): "))
                 result = password_database.generate_password(length)
-                print("Generated {} Characters long password: ".format(length))
+                print("Generated {} characters long password: ".format(length))
                 print(result)
                 clipboard.copy(result)
-                print("\nPassword copied to clipboard.")
+                print("Copied to clipboard.")
 
             # Add command to add an entry to the database
             case "add":
@@ -277,9 +276,9 @@ if __name__ == "__main__":
                     print("Database is locked, unlock it using the 'unlock' command.")
 
                 else:
-                    website = input("Enter the website: ")
-                    username = input("Enter the username: ")
-                    password = input("Enter the password: ")
+                    website = input("Enter website: ")
+                    username = input("Enter username: ")
+                    password = input("Enter password: ")
                     result = password_database.add_entry(
                         db, website, username, password)
 
@@ -294,7 +293,7 @@ if __name__ == "__main__":
                     print("Database is locked, unlock it using the 'unlock' command.")
 
                 else:
-                    website = input("Enter the website: ")
+                    website = input("Enter website: ")
                     result = password_database.remove_entry(db, website)
                     # If the remove_entry function returned an error message, print it
 
@@ -308,7 +307,7 @@ if __name__ == "__main__":
                     print("Database is locked, unlock it using the 'unlock' command.")
 
                 else:
-                    website = input("Enter the website: ")
+                    website = input("Enter website: ")
                     result = password_database.carve_credentials(db, website)
 
                     # If the get_credentials function returned an error message, print it
@@ -353,7 +352,7 @@ if __name__ == "__main__":
 
                 if (password_database.locked == False):
                     password_database.encrypt_file(
-                        maskpass.askpass("Enter password to encrypt: "))
+                        maskpass.askpass("Password: "))
                     db.close()
                     password_database.close_database()
                     os.remove(password_database.database_name + ".db")
@@ -363,7 +362,7 @@ if __name__ == "__main__":
             # Help command to list all available commands and their functions
             case "help":
 
-                print("Available commands: \n")
+                print("\nAvailable commands: \n")
                 print("'unlock' - decrypt the database file")
                 print("'lock' - encrypt the database file")
                 print(
@@ -378,9 +377,9 @@ if __name__ == "__main__":
 
             # Default answer to not valid commands
             case _:
-
-                print(
-                    "This is not a valid command, use the 'help' command for more information.")
+                if command is not "":
+                    print(
+                        "This is not a valid command, use the 'help' command for more information.")
 
         if (password_database.locked == False and os.path.exists(password_database.database_name + ".db.enc")):
             db.close()
