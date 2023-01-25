@@ -14,7 +14,7 @@ CipherCrusader offers a variety of commands for the user to manage their login i
 - `exit`: Encrypts the database and exits the program.
 - `help`: Lists all available commands and their functions.
 
-The first time the program is run, a file named 'database.db' will be created in the program's directory. When encrypted, the file name will change to 'database.db.enc'.
+The first time the program is run, the program will ask the user for a name for the database which will be created in the program's directory. When encrypted, the file extension will change to '.db.enc'.
 
 If you encounter any issues or bugs with the program, please feel free to submit an issue or submit a pull request with your suggested changes.
 
