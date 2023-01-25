@@ -222,167 +222,172 @@ class password_database:
         self.db.close()
 
 
-# Create the database object
-password_database = password_database(
-    input("Enter the name of the database: "))
-db = sqlite3.connect(password_database.database_name + '.db')
+if __name__ == "__main__":
 
-# Console interface
-while True:
+    # Create the database object
+    password_database = password_database(
+        input("Enter the name of the database: "))
+    db = sqlite3.connect(password_database.database_name + '.db')
 
-    # Display a prompt for the user
-    command = input("\nEnter a command: ")
-    print("\n")
+    # Console interface
+    while True:
 
-    match command:
+        # Display a prompt for the user
+        command = input("\nEnter a command: ")
+        print("\n")
 
-        # Unlock command to decrypt database
-        case "unlock":
+        match command:
 
-            if (password_database.locked == False):
-                print("The database is not encrypted.")
+            # Unlock command to decrypt database
+            case "unlock":
 
-            else:
-                password_database.decrypt_file()
-                password_database.locked = False
+                if (password_database.locked == False):
+                    print("The database is not encrypted.")
 
-        # Lock command to encrypt database
-        case "lock":
-
-            if (password_database.locked == True):
-                print("The database is already encrypted.")
-
-            else:
-                password_database.encrypt_file(
-                    maskpass.askpass("Enter password to encrypt: "))
-                password_database.locked = True
-
-        # Generate command to generate a strong password and copy it to clipboard
-        case "generate":
-
-            length = int(input("Enter password length (must be an integer): "))
-            result = password_database.generate_password(length)
-            print("Generated {} Characters long password: ".format(length))
-            print(result)
-            clipboard.copy(result)
-            print("\nPassword copied to clipboard.")
-
-        # Add command to add an entry to the database
-        case "add":
-
-            if (password_database.locked == True):
-                print("Database is locked, unlock it using the 'unlock' command.")
-
-            else:
-                website = input("Enter the website: ")
-                username = input("Enter the username: ")
-                password = input("Enter the password: ")
-                result = password_database.add_entry(
-                    db, website, username, password)
-
-                # If the add_entry function returned an error message, print it
-                if result:
-                    print(result)
-
-        # Remove command to remove an entry from the database
-        case "remove":
-
-            if (password_database.locked == True):
-                print("Database is locked, unlock it using the 'unlock' command.")
-
-            else:
-                website = input("Enter the website: ")
-                result = password_database.remove_entry(db, website)
-                # If the remove_entry function returned an error message, print it
-
-                if result:
-                    print(result)
-
-        # Get command to list the credentials for a website
-        case "get":
-
-            if (password_database.locked == True):
-                print("Database is locked, unlock it using the 'unlock' command.")
-
-            else:
-                website = input("Enter the website: ")
-                result = password_database.carve_credentials(db, website)
-
-                # If the get_credentials function returned an error message, print it
-                if isinstance(result, str):
-                    print(result)
-
-                # If the get_credentials function returned a tuple, print the username and password
                 else:
-                    username, password = result
-                    print("Username:", username)
-                    print("Password:", password)
-                    clipboard.copy(password)
-                    print("\nPassword for {} copied to clipboard.".format(website))
+                    password_database.decrypt_file()
+                    password_database.locked = False
 
-        # List command to list all the websites existing in the database
-        case "list":
+            # Lock command to encrypt database
+            case "lock":
 
-            if (password_database.locked == True):
-                print("Database is locked, unlock it using the 'unlock' command.")
+                if (password_database.locked == True):
+                    print("The database is already encrypted.")
 
-            else:
-                result = password_database.list_websites(db)
-                number_of_sites = 0
-
-                # If the list_websites function returned an error message, print it
-                if isinstance(result, str):
-                    print(result)
-
-                # If the list_websites function returned a list, print the websites
                 else:
+                    password_database.encrypt_file(
+                        maskpass.askpass("Enter password to encrypt: "))
+                    password_database.locked = True
 
-                    for website in result:
-                        number_of_sites += 1
-                        print(website)
+            # Generate command to generate a strong password and copy it to clipboard
+            case "generate":
 
-                    print("\nThere are {} credentials in the database.".format(
-                        str(number_of_sites)))
+                length = int(
+                    input("Enter password length (must be an integer): "))
+                result = password_database.generate_password(length)
+                print("Generated {} Characters long password: ".format(length))
+                print(result)
+                clipboard.copy(result)
+                print("\nPassword copied to clipboard.")
 
-        # Exit command to exit the program
-        case "exit":
+            # Add command to add an entry to the database
+            case "add":
 
-            if (password_database.locked == False):
-                password_database.encrypt_file(
-                    maskpass.askpass("Enter password to encrypt: "))
-                db.close()
-                password_database.close_database()
-                os.remove(password_database.database_name + ".db")
+                if (password_database.locked == True):
+                    print("Database is locked, unlock it using the 'unlock' command.")
 
-            break
+                else:
+                    website = input("Enter the website: ")
+                    username = input("Enter the username: ")
+                    password = input("Enter the password: ")
+                    result = password_database.add_entry(
+                        db, website, username, password)
 
-        # Help command to list all available commands and their functions
-        case "help":
+                    # If the add_entry function returned an error message, print it
+                    if result:
+                        print(result)
 
-            print("Available commands: \n")
-            print("'unlock' - decrypt the database file")
-            print("'lock' - encrypt the database file")
-            print("'generate' - generate a strong password and copies it to clipboard")
-            print("'add' - add an entry to the database")
-            print("'remove' - remove an entry from the database")
-            print(
-                "'get' - print the credentials to a website and copy the password to clipboard")
-            print("'list' - list all the websites in the database")
-            print("'exit' - exits the program")
-            print("'help' - displays this message")
+            # Remove command to remove an entry from the database
+            case "remove":
 
-        # Default answer to not valid commands
-        case _:
+                if (password_database.locked == True):
+                    print("Database is locked, unlock it using the 'unlock' command.")
 
-            print(
-                "This is not a valid command, use the 'help' command for more information.")
+                else:
+                    website = input("Enter the website: ")
+                    result = password_database.remove_entry(db, website)
+                    # If the remove_entry function returned an error message, print it
 
-    if (password_database.locked == False and os.path.exists(password_database.database_name + ".db.enc")):
-        db.close()
-        password_database.close_database()
-        os.remove(password_database.database_name + ".db.enc")
+                    if result:
+                        print(result)
 
-    elif (password_database.locked == True and os.path.exists(password_database.database_name + ".db")):
-        db.close()
-        password_database.close_database()
-        os.remove(password_database.database_name + ".db")
+            # Get command to list the credentials for a website
+            case "get":
+
+                if (password_database.locked == True):
+                    print("Database is locked, unlock it using the 'unlock' command.")
+
+                else:
+                    website = input("Enter the website: ")
+                    result = password_database.carve_credentials(db, website)
+
+                    # If the get_credentials function returned an error message, print it
+                    if isinstance(result, str):
+                        print(result)
+
+                    # If the get_credentials function returned a tuple, print the username and password
+                    else:
+                        username, password = result
+                        print("Username:", username)
+                        print("Password:", password)
+                        clipboard.copy(password)
+                        print(
+                            "\nPassword for {} copied to clipboard.".format(website))
+
+            # List command to list all the websites existing in the database
+            case "list":
+
+                if (password_database.locked == True):
+                    print("Database is locked, unlock it using the 'unlock' command.")
+
+                else:
+                    result = password_database.list_websites(db)
+                    number_of_sites = 0
+
+                    # If the list_websites function returned an error message, print it
+                    if isinstance(result, str):
+                        print(result)
+
+                    # If the list_websites function returned a list, print the websites
+                    else:
+
+                        for website in result:
+                            number_of_sites += 1
+                            print(website)
+
+                        print("\nThere are {} credentials in the database.".format(
+                            str(number_of_sites)))
+
+            # Exit command to exit the program
+            case "exit":
+
+                if (password_database.locked == False):
+                    password_database.encrypt_file(
+                        maskpass.askpass("Enter password to encrypt: "))
+                    db.close()
+                    password_database.close_database()
+                    os.remove(password_database.database_name + ".db")
+
+                break
+
+            # Help command to list all available commands and their functions
+            case "help":
+
+                print("Available commands: \n")
+                print("'unlock' - decrypt the database file")
+                print("'lock' - encrypt the database file")
+                print(
+                    "'generate' - generate a strong password and copies it to clipboard")
+                print("'add' - add an entry to the database")
+                print("'remove' - remove an entry from the database")
+                print(
+                    "'get' - print the credentials to a website and copy the password to clipboard")
+                print("'list' - list all the websites in the database")
+                print("'exit' - exits the program")
+                print("'help' - displays this message")
+
+            # Default answer to not valid commands
+            case _:
+
+                print(
+                    "This is not a valid command, use the 'help' command for more information.")
+
+        if (password_database.locked == False and os.path.exists(password_database.database_name + ".db.enc")):
+            db.close()
+            password_database.close_database()
+            os.remove(password_database.database_name + ".db.enc")
+
+        elif (password_database.locked == True and os.path.exists(password_database.database_name + ".db")):
+            db.close()
+            password_database.close_database()
+            os.remove(password_database.database_name + ".db")
