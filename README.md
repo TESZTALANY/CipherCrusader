@@ -28,6 +28,12 @@ Thank you for using CipherCrusader and have a great day! ☺️
 
 2. Download the source code for CipherCrusader from the repository.
 
-3. Install the dependencies listed in the requirements.txt file by running the following command: <br> `pip install -r requirements.txt`
+3. Install the dependencies listed in the requirements.txt file by running the following command:
+    ```
+    pip install -r requirements.txt
+    ```
 
-4. Run the script using the command: <br> `python CipherCrusader.py`
+4. Run the script using the command:
+    ```
+    python CipherCrusader.py
+    ```
