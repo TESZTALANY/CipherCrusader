@@ -12,6 +12,7 @@ CipherCrusader offers a variety of commands for the user to manage their login i
 - `remove`: Removes an entry from the database.
 - `get`: Retrieves the credentials for a specific website.
 - `list`: Lists all websites for which the user has stored credentials in the database.
+- `resetpw`: Resets the master password after authenticating the user.
 - `exit`: Encrypts the database and exits the program.
 - `help`: Lists all available commands and their functions.
 

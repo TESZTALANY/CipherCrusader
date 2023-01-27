@@ -388,6 +388,7 @@ if __name__ == "__main__":
                 print(
                     "'get' - print the credentials to a website and copy the password to clipboard")
                 print("'list' - list all the websites in the database")
+                print("'resetpw' - reset master password")
                 print("'exit' - exits the program")
                 print("'help' - displays this message")
 
