@@ -5,13 +5,13 @@
 # 'CipherCrusader' is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 #
-# My Project is distributed in the hope that it will be useful,
+# 'CipherCrusader' is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # MIT License for more details.
 #
 # You should have received a copy of the MIT License
-# along with My Project.  If not, see <https://opensource.org/licenses/MIT>.
+# along with 'CipherCrusader'.  If not, see <https://opensource.org/licenses/MIT>.
 
 
 import sqlite3
@@ -37,7 +37,7 @@ class password_database:
             d += d_i
         return d[:key_length], d[key_length:key_length+iv_length]
 
-    def encrypt_file(self, password,):
+    def encrypt_file(self, password):
         with open(self.database_name + ".db", "rb") as in_file, open(self.database_name + ".db.enc", "wb") as out_file:
             bs = AES.block_size  # 16 bytes
             key_length = 32
@@ -55,11 +55,10 @@ class password_database:
                     finished = True
                 out_file.write(cipher.encrypt(chunk))
 
-    def decrypt_file(self):
+    def decrypt_file(self, prompt: string = "Password: "):
         decryption_successful = False
         while not decryption_successful:
-            password = maskpass.askpass(
-                "Password: ")
+            password = maskpass.askpass(prompt)
             bs = AES.block_size
             key_length = 32
             with open(self.database_name + ".db.enc", "rb") as in_file:
@@ -76,6 +75,7 @@ class password_database:
                     with open(self.database_name + ".db", "rb") as f:
                         header = f.read(16)
                     if header == b'SQLite format 3\x00':
+                        self.password = password
                         decryption_successful = True
                     else:
                         os.remove(self.database_name + ".db")
@@ -90,7 +90,8 @@ class password_database:
         if os.path.exists(self.database_name + '.db.enc'):
             # If the file exists, decrypt it
             self.decrypt_file()
-
+        else:
+            self.reset_masterpassword(maskpass.askpass("Password: "))
         # Open a connection to the database or create it
         self.db = sqlite3.connect(self.database_name + '.db')
         # Check if the 'websites' table exists
@@ -218,6 +219,9 @@ class password_database:
 
         return password
 
+    def reset_masterpassword(self, new_password):
+        self.password = new_password
+
     def close_database(self):
         self.db.close()
 
@@ -255,7 +259,7 @@ if __name__ == "__main__":
 
                 else:
                     password_database.encrypt_file(
-                        maskpass.askpass("Password: "))
+                        password_database.password)
                     password_database.locked = True
 
             # Generate command to generate a strong password and copy it to clipboard
@@ -304,7 +308,7 @@ if __name__ == "__main__":
             case "get":
 
                 if (password_database.locked == True):
-                    print("Database is locked, unlock it using the 'unlock' command.")
+                    password_database.decrypt_file()
 
                 else:
                     website = input("Enter website: ")
@@ -347,12 +351,24 @@ if __name__ == "__main__":
                         print("\nThere are {} credentials in the database.".format(
                             str(number_of_sites)))
 
+            # Change password command to change the master password
+            case "resetpw":
+                old_password = maskpass.askpass("Old password: ")
+                if (old_password == password_database.password):
+                    new_password = maskpass.askpass("New password: ")
+                    if (new_password == maskpass.askpass("Confirm new password: ")):
+                        password_database.reset_masterpassword(new_password)
+                    else:
+                        print("Incorrect password")
+                else:
+                    print("Incorrect password")
+
             # Exit command to exit the program
             case "exit":
 
                 if (password_database.locked == False):
                     password_database.encrypt_file(
-                        maskpass.askpass("Password: "))
+                        password_database.password)
                     db.close()
                     password_database.close_database()
                     os.remove(password_database.database_name + ".db")
@@ -377,7 +393,7 @@ if __name__ == "__main__":
 
             # Default answer to not valid commands
             case _:
-                if command is not "":
+                if command != "":
                     print(
                         "This is not a valid command, use the 'help' command for more information.")
 
