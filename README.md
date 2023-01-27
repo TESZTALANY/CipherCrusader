@@ -10,7 +10,8 @@ CipherCrusader offers a variety of commands for the user to manage their login i
 - `generate`: Generates a strong, unique password of a user-specified length.
 - `add`: Adds an entry to the database, including a website, username, and password.
 - `remove`: Removes an entry from the database.
-- `get`: Retrieves the credentials for a specific website.
+- `get`: Retrieves the credentials for a specified website.
+- `copy`: Copies the password for a specified website.
 - `list`: Lists all websites for which the user has stored credentials in the database.
 - `resetpw`: Resets the master password after authenticating the user.
 - `exit`: Encrypts the database and exits the program.
@@ -32,7 +33,6 @@ The first time the program is run, the program will ask the user for a name for 
     python CipherCrusader.py
     ```
 ## Issues/Contributing
-If you encounter any issues or bugs with the program, please feel free to submit an issue or submit a pull request with your suggested changes. 
+If you encounter any issues or bugs with the program, please feel free to submit an issue or submit a pull request with your suggested changes.
 
 #### Thank you for using CipherCrusader and have a great day! ☺️
-

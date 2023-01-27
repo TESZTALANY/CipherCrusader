@@ -309,20 +309,63 @@ if __name__ == "__main__":
 
                 if (password_database.locked == True):
                     password_database.decrypt_file()
+                    website = input("Enter website: ")
+                    result = password_database.carve_credentials(db, website)
+
+                    # If the carve_credentials function returned an error message, print it
+                    if isinstance(result, str):
+                        print(result)
+
+                    # If the carve_credentials function returned a tuple, print the username and password
+                    else:
+                        username, password = result
+                        print("Username:", username)
+                        print("Password:", password)
 
                 else:
                     website = input("Enter website: ")
                     result = password_database.carve_credentials(db, website)
 
-                    # If the get_credentials function returned an error message, print it
+                    # If the carve_credentials function returned an error message, print it
                     if isinstance(result, str):
                         print(result)
 
-                    # If the get_credentials function returned a tuple, print the username and password
+                    # If the carve_credentials function returned a tuple, print the username and password
                     else:
                         username, password = result
                         print("Username:", username)
                         print("Password:", password)
+
+            case "copy":
+                if (password_database.locked == True):
+                    password_database.decrypt_file()
+                    website = input("Enter website: ")
+                    result = password_database.carve_credentials(db, website)
+
+                    # If the carve_credentials function returned an error message, print it
+                    if isinstance(result, str):
+                        print(result)
+
+                    # If the carve_credentials function returned a tuple, print the username and password
+                    else:
+                        username, password = result
+                        print("Username: " + username)
+                        clipboard.copy(password)
+                        print(
+                            "\nPassword for {} copied to clipboard.".format(website))
+
+                else:
+                    website = input("Enter website: ")
+                    result = password_database.carve_credentials(db, website)
+
+                    # If the carve_credentials function returned an error message, print it
+                    if isinstance(result, str):
+                        print(result)
+
+                    # If the carve_credentials function returned a tuple, print the username and password
+                    else:
+                        username, password = result
+                        print("Username: " + username)
                         clipboard.copy(password)
                         print(
                             "\nPassword for {} copied to clipboard.".format(website))
@@ -386,7 +429,9 @@ if __name__ == "__main__":
                 print("'add' - add an entry to the database")
                 print("'remove' - remove an entry from the database")
                 print(
-                    "'get' - print the credentials to a website and copy the password to clipboard")
+                    "'get' - print the credentials to a website")
+                print(
+                    "'copy' - print the username to a website and copy the password to the clipboard")
                 print("'list' - list all the websites in the database")
                 print("'resetpw' - reset master password")
                 print("'exit' - exits the program")
