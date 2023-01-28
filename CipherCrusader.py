@@ -20,6 +20,7 @@ import os
 from os import urandom
 import string
 import secrets
+import time
 import hashlib
 import pyperclip as clipboard
 from Crypto.Cipher import AES
@@ -54,34 +55,36 @@ class password_database:
                     chunk += str.encode(padding_length * chr(padding_length))
                     finished = True
                 out_file.write(cipher.encrypt(chunk))
+        self.db.close()
 
-    def decrypt_file(self, prompt: string = "Password: "):
-        decryption_successful = False
-        while not decryption_successful:
-            password = maskpass.askpass(prompt)
-            bs = AES.block_size
-            key_length = 32
-            with open(self.database_name + ".db.enc", "rb") as in_file:
-                salt = in_file.read(bs)
-                key, iv = self.derive_key_and_iv(
-                    password, salt, key_length, bs)
-                cipher = AES.new(key, AES.MODE_CBC, iv)
-                data = in_file.read()
-                decrypted_data = cipher.decrypt(data)
-                in_file.close()
-                try:
-                    with open(self.database_name + ".db", "wb") as out_file:
-                        out_file.write(decrypted_data)
-                    with open(self.database_name + ".db", "rb") as f:
-                        header = f.read(16)
-                    if header == b'SQLite format 3\x00':
-                        self.password = password
-                        decryption_successful = True
-                    else:
-                        os.remove(self.database_name + ".db")
-                        print("Incorrect password, please try again.")
-                except ValueError:
+    def decrypt_file(self, password):
+        self.locked = True
+        bs = AES.block_size
+        key_length = 32
+        with open(self.database_name + ".db.enc", "rb") as in_file:
+            salt = in_file.read(bs)
+            key, iv = self.derive_key_and_iv(
+                password, salt, key_length, bs)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            data = in_file.read()
+            decrypted_data = cipher.decrypt(data)
+            in_file.close()
+            try:
+                with open(self.database_name + ".db", "wb") as out_file:
+                    out_file.write(decrypted_data)
+                with open(self.database_name + ".db", "rb") as f:
+                    header = f.read(16)
+                if header == b'SQLite format 3\x00':
+                    self.password = password
+                    self.locked = False
+                    os.remove(self.database_name + ".db.enc")
+                else:
+                    os.remove(self.database_name + ".db")
                     print("Incorrect password, please try again.")
+                    return "Error: incorrect password"
+            except ValueError:
+                print("Incorrect password, please try again.")
+                return "Error: incorrect password"
 
     def __init__(self, database_name) -> None:
         self.database_name = database_name
@@ -89,7 +92,16 @@ class password_database:
         # Check if the database file exists
         if os.path.exists(self.database_name + '.db.enc'):
             # If the file exists, decrypt it
-            self.decrypt_file()
+            result = self.decrypt_file(maskpass.askpass("Password: "))
+            if result == "Error: incorrect password":
+                print(result)
+                tries = 0
+                while self.locked == True:
+                    tries += 1
+                    if tries == 5:
+                        exit()
+                    self.password = maskpass.askpass("Password: ")
+                    self.decrypt_file(self.password)
         else:
             self.reset_masterpassword(maskpass.askpass("Password: "))
         # Open a connection to the database or create it
@@ -105,7 +117,9 @@ class password_database:
             cursor.execute(
                 "CREATE TABLE websites (website text, username text, password text)")
 
-        self.locked = False
+        self.db.close()
+        self.encrypt_file(self.password)
+        os.remove(self.database_name + ".db")
 
     def add_entry(self, db, website, username, password):
 
@@ -222,16 +236,15 @@ class password_database:
     def reset_masterpassword(self, new_password):
         self.password = new_password
 
-    def close_database(self):
-        self.db.close()
-
 
 if __name__ == "__main__":
 
     # Create the database object
     password_database = password_database(
         input("Name of database: "))
-    db = sqlite3.connect(password_database.database_name + '.db')
+
+    last_keypress = time.time()
+    lock_time = 60
 
     # Console interface
     while True:
@@ -240,27 +253,6 @@ if __name__ == "__main__":
         command = input("> ")
 
         match command:
-
-            # Unlock command to decrypt database
-            case "unlock":
-
-                if (password_database.locked == False):
-                    print("The database is not encrypted.")
-
-                else:
-                    password_database.decrypt_file()
-                    password_database.locked = False
-
-            # Lock command to encrypt database
-            case "lock":
-
-                if (password_database.locked == True):
-                    print("The database is already encrypted.")
-
-                else:
-                    password_database.encrypt_file(
-                        password_database.password)
-                    password_database.locked = True
 
             # Generate command to generate a strong password and copy it to clipboard
             case "generate":
@@ -273,157 +265,225 @@ if __name__ == "__main__":
                 clipboard.copy(result)
                 print("Copied to clipboard.")
 
+                last_keypress = time.time()
+
             # Add command to add an entry to the database
             case "add":
 
-                if (password_database.locked == True):
-                    print("Database is locked, unlock it using the 'unlock' command.")
+                if (time.time() - last_keypress > lock_time):
+                    password_database.password = maskpass.askpass("Password: ")
+                result = password_database.decrypt_file(
+                    password_database.password)
+                if result == "Error: incorrect password":
+                    print(result)
+                    tries = 0
+                    while password_database.locked == True:
+                        tries += 1
+                        if tries == 5:
+                            exit()
+                        password_database.password = maskpass.askpass(
+                            "Password: ")
+                        password_database.decrypt_file(
+                            password_database.password)
 
-                else:
-                    website = input("Enter website: ")
-                    username = input("Enter username: ")
-                    password = input("Enter password: ")
-                    result = password_database.add_entry(
-                        db, website, username, password)
+                db = sqlite3.connect(password_database.database_name + '.db')
+                website = input("Enter website: ")
+                username = input("Enter username: ")
+                password = input("Enter password: ")
+                result = password_database.add_entry(
+                    db, website, username, password)
 
-                    # If the add_entry function returned an error message, print it
-                    if result:
-                        print(result)
+                # If the add_entry function returned an error message, print it
+                if result:
+                    print(result)
+
+                db.close()
+                password_database.encrypt_file(password_database.password)
+
+                last_keypress = time.time()
 
             # Remove command to remove an entry from the database
             case "remove":
 
-                if (password_database.locked == True):
-                    print("Database is locked, unlock it using the 'unlock' command.")
+                if (time.time() - last_keypress > lock_time):
+                    password_database.password = maskpass.askpass("Password: ")
+                result = password_database.decrypt_file(
+                    password_database.password)
+                if result == "Error: incorrect password":
+                    print(result)
+                    tries = 0
+                    while password_database.locked == True:
+                        tries += 1
+                        if tries == 5:
+                            exit()
+                        password_database.password = maskpass.askpass(
+                            "Password: ")
+                        password_database.decrypt_file(
+                            password_database.password)
 
-                else:
-                    website = input("Enter website: ")
-                    result = password_database.remove_entry(db, website)
-                    # If the remove_entry function returned an error message, print it
+                db = sqlite3.connect(password_database.database_name + '.db')
 
-                    if result:
-                        print(result)
+                website = input("Enter website: ")
+                result = password_database.remove_entry(db, website)
+                # If the remove_entry function returned an error message, print it
+
+                if result:
+                    print(result)
+
+                db.close()
+                password_database.encrypt_file(password_database.password)
+
+                last_keypress = time.time()
 
             # Get command to list the credentials for a website
             case "get":
 
-                if (password_database.locked == True):
-                    password_database.decrypt_file()
-                    website = input("Enter website: ")
-                    result = password_database.carve_credentials(db, website)
+                if (time.time() - last_keypress > lock_time):
+                    password_database.password = maskpass.askpass("Password: ")
+                result = password_database.decrypt_file(
+                    password_database.password)
+                if result == "Error: incorrect password":
+                    print(result)
+                    tries = 0
+                    while password_database.locked == True:
+                        tries += 1
+                        if tries == 5:
+                            exit()
+                        password_database.password = maskpass.askpass(
+                            "Password: ")
+                        password_database.decrypt_file(
+                            password_database.password)
 
-                    # If the carve_credentials function returned an error message, print it
-                    if isinstance(result, str):
-                        print(result)
+                db = sqlite3.connect(password_database.database_name + '.db')
 
-                    # If the carve_credentials function returned a tuple, print the username and password
-                    else:
-                        username, password = result
-                        print("Username:", username)
-                        print("Password:", password)
+                website = input("Enter website: ")
+                result = password_database.carve_credentials(db, website)
 
+                # If the carve_credentials function returned an error message, print it
+                if isinstance(result, str):
+                    print(result)
+
+                # If the carve_credentials function returned a tuple, print the username and password
                 else:
-                    website = input("Enter website: ")
-                    result = password_database.carve_credentials(db, website)
+                    username, password = result
+                    print("Username:", username)
+                    print("Password:", password)
+                db.close()
+                password_database.encrypt_file(password_database.password)
 
-                    # If the carve_credentials function returned an error message, print it
-                    if isinstance(result, str):
-                        print(result)
-
-                    # If the carve_credentials function returned a tuple, print the username and password
-                    else:
-                        username, password = result
-                        print("Username:", username)
-                        print("Password:", password)
+                last_keypress = time.time()
 
             case "copy":
-                if (password_database.locked == True):
-                    password_database.decrypt_file()
-                    website = input("Enter website: ")
-                    result = password_database.carve_credentials(db, website)
 
-                    # If the carve_credentials function returned an error message, print it
-                    if isinstance(result, str):
-                        print(result)
+                if (time.time() - last_keypress > lock_time):
+                    password_database.password = maskpass.askpass("Password: ")
+                result = password_database.decrypt_file(
+                    password_database.password)
+                if result == "Error: incorrect password":
+                    print(result)
+                    tries = 0
+                    while password_database.locked == True:
+                        tries += 1
+                        if tries == 5:
+                            exit()
+                        password_database.password = maskpass.askpass(
+                            "Password: ")
+                        password_database.decrypt_file(
+                            password_database.password)
 
-                    # If the carve_credentials function returned a tuple, print the username and password
-                    else:
-                        username, password = result
-                        print("Username: " + username)
-                        clipboard.copy(password)
-                        print(
-                            "\nPassword for {} copied to clipboard.".format(website))
+                db = sqlite3.connect(password_database.database_name + '.db')
 
+                website = input("Enter website: ")
+                result = password_database.carve_credentials(db, website)
+
+                # If the carve_credentials function returned an error message, print it
+                if isinstance(result, str):
+                    print(result)
+
+                # If the carve_credentials function returned a tuple, print the username
                 else:
-                    website = input("Enter website: ")
-                    result = password_database.carve_credentials(db, website)
+                    username, password = result
+                    print("Username: " + username)
+                    clipboard.copy(password)
+                    print(
+                        "Password for {} copied to clipboard.".format(website))
 
-                    # If the carve_credentials function returned an error message, print it
-                    if isinstance(result, str):
-                        print(result)
+                db.close()
+                password_database.encrypt_file(password_database.password)
 
-                    # If the carve_credentials function returned a tuple, print the username and password
-                    else:
-                        username, password = result
-                        print("Username: " + username)
-                        clipboard.copy(password)
-                        print(
-                            "\nPassword for {} copied to clipboard.".format(website))
+                last_keypress = time.time()
 
             # List command to list all the websites existing in the database
             case "list":
 
-                if (password_database.locked == True):
-                    print("Database is locked, unlock it using the 'unlock' command.")
+                if (time.time() - last_keypress > lock_time):
+                    password_database.password = maskpass.askpass("Password: ")
+                result = password_database.decrypt_file(
+                    password_database.password)
+                if result == "Error: incorrect password":
+                    print(result)
+                    tries = 0
+                    while password_database.locked == True:
+                        tries += 1
+                        if tries == 5:
+                            exit()
+                        password_database.password = maskpass.askpass(
+                            "Password: ")
+                        password_database.decrypt_file(
+                            password_database.password)
 
+                db = sqlite3.connect(password_database.database_name + '.db')
+
+                result = password_database.list_websites(db)
+                number_of_sites = 0
+
+                # If the list_websites function returned an error message, print it
+                if isinstance(result, str):
+                    print(result)
+
+                # If the list_websites function returned a list, print the websites
                 else:
-                    result = password_database.list_websites(db)
-                    number_of_sites = 0
 
-                    # If the list_websites function returned an error message, print it
-                    if isinstance(result, str):
-                        print(result)
+                    for website in result:
+                        number_of_sites += 1
+                        print(website)
 
-                    # If the list_websites function returned a list, print the websites
-                    else:
+                    print("\nThere are {} credentials in the database.".format(
+                        str(number_of_sites)))
 
-                        for website in result:
-                            number_of_sites += 1
-                            print(website)
+                db.close()
+                password_database.encrypt_file(password_database.password)
 
-                        print("\nThere are {} credentials in the database.".format(
-                            str(number_of_sites)))
+                last_keypress = time.time()
 
             # Change password command to change the master password
             case "resetpw":
+
                 old_password = maskpass.askpass("Old password: ")
                 if (old_password == password_database.password):
                     new_password = maskpass.askpass("New password: ")
                     if (new_password == maskpass.askpass("Confirm new password: ")):
+
+                        password_database.decrypt_file(old_password)
                         password_database.reset_masterpassword(new_password)
+                        password_database.encrypt_file(
+                            password_database.password)
                     else:
                         print("Incorrect password")
                 else:
                     print("Incorrect password")
 
+                last_keypress = time.time()
+
             # Exit command to exit the program
             case "exit":
 
-                if (password_database.locked == False):
-                    password_database.encrypt_file(
-                        password_database.password)
-                    db.close()
-                    password_database.close_database()
-                    os.remove(password_database.database_name + ".db")
-
-                break
+                exit()
 
             # Help command to list all available commands and their functions
             case "help":
 
                 print("\nAvailable commands: \n")
-                print("'unlock' - decrypt the database file")
-                print("'lock' - encrypt the database file")
                 print(
                     "'generate' - generate a strong password and copies it to clipboard")
                 print("'add' - add an entry to the database")
@@ -435,7 +495,9 @@ if __name__ == "__main__":
                 print("'list' - list all the websites in the database")
                 print("'resetpw' - reset master password")
                 print("'exit' - exits the program")
-                print("'help' - displays this message")
+                print("'help' - displays this message\n")
+
+                last_keypress = time.time()
 
             # Default answer to not valid commands
             case _:
@@ -443,12 +505,8 @@ if __name__ == "__main__":
                     print(
                         "This is not a valid command, use the 'help' command for more information.")
 
-        if (password_database.locked == False and os.path.exists(password_database.database_name + ".db.enc")):
-            db.close()
-            password_database.close_database()
-            os.remove(password_database.database_name + ".db.enc")
+                last_keypress = time.time()
 
-        elif (password_database.locked == True and os.path.exists(password_database.database_name + ".db")):
+        if (os.path.exists(password_database.database_name + ".db")):
             db.close()
-            password_database.close_database()
             os.remove(password_database.database_name + ".db")
