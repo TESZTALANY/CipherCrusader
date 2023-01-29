@@ -81,10 +81,10 @@ class password_database:
                 else:
                     os.remove(self.database_name + ".db")
                     print("Incorrect password, please try again.")
-                    return "Error: incorrect password"
+                    return False
             except ValueError:
                 print("Incorrect password, please try again.")
-                return "Error: incorrect password"
+                return False
 
     def __init__(self, database_name) -> None:
         self.database_name = database_name
@@ -93,8 +93,7 @@ class password_database:
         if os.path.exists(self.database_name + '.db.enc'):
             # If the file exists, decrypt it
             result = self.decrypt_file(maskpass.askpass("Password: "))
-            if result == "Error: incorrect password":
-                print(result)
+            if result == False:
                 tries = 0
                 while self.locked == True:
                     tries += 1
@@ -237,6 +236,24 @@ class password_database:
         self.password = new_password
 
 
+def time_check():
+    if (time.time() - last_keypress > lock_time):
+        password_database.password = maskpass.askpass("Password: ")
+    if not password_database.decrypt_file(
+            password_database.password):
+        print(result)
+        tries = 0
+        while password_database.locked == True:
+
+            tries += 1
+            if tries == max_tries:
+                exit()
+            password_database.password = maskpass.askpass(
+                "Password: ")
+            password_database.decrypt_file(
+                password_database.password)
+
+
 if __name__ == "__main__":
 
     # Create the database object
@@ -245,6 +262,7 @@ if __name__ == "__main__":
 
     last_keypress = time.time()
     lock_time = 60
+    max_tries = 3
 
     # Console interface
     while True:
@@ -270,21 +288,7 @@ if __name__ == "__main__":
             # Add command to add an entry to the database
             case "add":
 
-                if (time.time() - last_keypress > lock_time):
-                    password_database.password = maskpass.askpass("Password: ")
-                result = password_database.decrypt_file(
-                    password_database.password)
-                if result == "Error: incorrect password":
-                    print(result)
-                    tries = 0
-                    while password_database.locked == True:
-                        tries += 1
-                        if tries == 5:
-                            exit()
-                        password_database.password = maskpass.askpass(
-                            "Password: ")
-                        password_database.decrypt_file(
-                            password_database.password)
+                time_check()
 
                 db = sqlite3.connect(password_database.database_name + '.db')
                 website = input("Enter website: ")
@@ -305,21 +309,7 @@ if __name__ == "__main__":
             # Remove command to remove an entry from the database
             case "remove":
 
-                if (time.time() - last_keypress > lock_time):
-                    password_database.password = maskpass.askpass("Password: ")
-                result = password_database.decrypt_file(
-                    password_database.password)
-                if result == "Error: incorrect password":
-                    print(result)
-                    tries = 0
-                    while password_database.locked == True:
-                        tries += 1
-                        if tries == 5:
-                            exit()
-                        password_database.password = maskpass.askpass(
-                            "Password: ")
-                        password_database.decrypt_file(
-                            password_database.password)
+                time_check()
 
                 db = sqlite3.connect(password_database.database_name + '.db')
 
@@ -338,21 +328,7 @@ if __name__ == "__main__":
             # Get command to list the credentials for a website
             case "get":
 
-                if (time.time() - last_keypress > lock_time):
-                    password_database.password = maskpass.askpass("Password: ")
-                result = password_database.decrypt_file(
-                    password_database.password)
-                if result == "Error: incorrect password":
-                    print(result)
-                    tries = 0
-                    while password_database.locked == True:
-                        tries += 1
-                        if tries == 5:
-                            exit()
-                        password_database.password = maskpass.askpass(
-                            "Password: ")
-                        password_database.decrypt_file(
-                            password_database.password)
+                time_check()
 
                 db = sqlite3.connect(password_database.database_name + '.db')
 
@@ -375,21 +351,7 @@ if __name__ == "__main__":
 
             case "copy":
 
-                if (time.time() - last_keypress > lock_time):
-                    password_database.password = maskpass.askpass("Password: ")
-                result = password_database.decrypt_file(
-                    password_database.password)
-                if result == "Error: incorrect password":
-                    print(result)
-                    tries = 0
-                    while password_database.locked == True:
-                        tries += 1
-                        if tries == 5:
-                            exit()
-                        password_database.password = maskpass.askpass(
-                            "Password: ")
-                        password_database.decrypt_file(
-                            password_database.password)
+                time_check()
 
                 db = sqlite3.connect(password_database.database_name + '.db')
 
@@ -416,21 +378,7 @@ if __name__ == "__main__":
             # List command to list all the websites existing in the database
             case "list":
 
-                if (time.time() - last_keypress > lock_time):
-                    password_database.password = maskpass.askpass("Password: ")
-                result = password_database.decrypt_file(
-                    password_database.password)
-                if result == "Error: incorrect password":
-                    print(result)
-                    tries = 0
-                    while password_database.locked == True:
-                        tries += 1
-                        if tries == 5:
-                            exit()
-                        password_database.password = maskpass.askpass(
-                            "Password: ")
-                        password_database.decrypt_file(
-                            password_database.password)
+                time_check()
 
                 db = sqlite3.connect(password_database.database_name + '.db')
 
