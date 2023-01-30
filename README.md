@@ -2,7 +2,7 @@
 ## Summary
 CipherCrusader is an open-source command-line password manager created in Python 3.10. The program requires Python 3.10 or later to be installed on the user's device. Instructions on how to install Python can be found on the official Python website (https://www.python.org/).
 
-CipherCrusader utilizes AES encryption to secure the user's login information stored in an SQLite database. The database is encrypted by default and can only be accessed by providing the correct password. The program locks out the user after 60 seconds of inactivity. When locked, most features require the master password. After 5 failed password attempts, the program exits to prevent brute-force attacks.
+CipherCrusader utilizes AES encryption to secure the user's login information stored in an SQLite database. The database is encrypted by default and can only be accessed by providing the correct password. The program locks out the user after 60 seconds of inactivity. When locked, most features require the master password. After 3 failed password attempts, the program exits to prevent brute-force attacks.
 
 CipherCrusader offers a variety of commands for the user to manage their login information. These include:
 - `generate`: Generates a strong, unique password of a user-specified length.
