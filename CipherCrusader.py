@@ -206,6 +206,8 @@ class password_database:
 
     def generate_password(self, length):
       # Exclude certain special characters that are known to cause issues in SQLite queries
+        if length < 9:
+            return "Error: value too low"
         symbols = string.punctuation.replace("'", "").replace("\\", "")
 
         lower_case = string.ascii_lowercase
@@ -274,9 +276,11 @@ if __name__ == "__main__":
 
             # Generate command to generate a strong password and copy it to clipboard
             case "generate":
-
-                length = int(
-                    input("Password length (int): "))
+                length = 0
+                while length < 9:
+                    length = int(input("Password length (int): "))
+                    if length < 9:
+                        print("Length must be over 8.")
                 result = password_database.generate_password(length)
                 print("Generated {} characters long password: ".format(length))
                 print(result)
