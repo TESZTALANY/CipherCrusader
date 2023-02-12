@@ -32,7 +32,6 @@ class password_database:
     def derive_key_and_iv(self, password, salt, key_length, iv_length):
         d = d_i = b''
         while len(d) < key_length + iv_length:
-            # d_i = md5(d_i + str.encode(password) + salt).digest() #obtain the md5 hash value
             d_i = hashlib.pbkdf2_hmac(
                 'sha256', d_i + password.encode() + salt, salt, 100000)
             d += d_i
@@ -243,7 +242,6 @@ def time_check():
         password_database.password = maskpass.askpass("Password: ")
     if not password_database.decrypt_file(
             password_database.password):
-        print(result)
         tries = 0
         while password_database.locked == True:
 
